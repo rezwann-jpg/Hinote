@@ -22,7 +22,7 @@ Client: → Send updates as they happen
 
 - Custom message protocol (JSON) for sending and recieving updates from Server
 - Example:
-JSON
+```JSON
 // Client-side outgoing message format
 {
   "type": "operation",
@@ -35,10 +35,10 @@ JSON
   },
   "timestamp": 1634567890000  // Client local timestamp
 }
-
+```
 ### Future improvements
 - Markdown support
-
+```
 hinote/
 ├── pom.xml
 ├── src/
@@ -125,7 +125,8 @@ hinote/
 │                       └── protocol/
 │                           └── MessageTest.java
 
-
+```
+```
 // Text operation example
 {
   "type": "TEXT_OPERATION",
@@ -144,4 +145,5 @@ hinote/
   },
   "timestamp": 1634567890000
 }
+```
 
