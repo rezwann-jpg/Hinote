@@ -1,0 +1,11 @@
+com\hinote\App.class
+com\hinote\shared\protocol\TextOperationProtocol.class
+com\hinote\PrimaryController.class
+com\hinote\shared\protocol\ChatMessageProtocol.class
+com\hinote\shared\protocol\Message.class
+com\hinote\shared\protocol\TextOperationProtocol$TextOperationType.class
+com\hinote\SecondaryController.class
+com\hinote\shared\protocol\MessageType.class
+com\hinote\shared\utils\JsonUtil.class
+com\hinote\shared\utils\IdGenerator.class
+module-info.class
