@@ -6,6 +6,7 @@ import com.hinote.server.services.SynchronizationService;
 import com.hinote.shared.protocol.Message;
 import com.hinote.shared.protocol.MessageType;
 import com.hinote.shared.utils.JsonUtil;
+import com.hinote.shared.utils.IdGenerator;
 import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,11 +15,15 @@ public class MessageRouter {
     private static final Logger logger = LoggerFactory.getLogger(MessageRouter.class);
     private final RoomService roomService;
     private final SynchronizationService syncService;
-    private final WebSocketHandler webSocketHandler;
+    private WebSocketHandler webSocketHandler;
 
     public MessageRouter(RoomService roomService, SynchronizationService syncService, WebSocketHandler webSocketHandler) {
         this.roomService = roomService;
         this.syncService = syncService;
+        this.webSocketHandler = webSocketHandler;
+    }
+
+    public void setWebSocketHandler(WebSocketHandler webSocketHandler) {
         this.webSocketHandler = webSocketHandler;
     }
 

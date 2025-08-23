@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.control.Label?>
+
+<BorderPane xmlns:fx="http://javafx.com/fxml" fx:controller="com.hinote.client.ui.MainController">
+    <top>
+        <Label text="Hinote Collaborative Drawing" styleClass="header-label"/>
+    </top>
+    <center>
+        <VBox fx:id="drawingCanvas" styleClass="drawing-canvas">
+            <!-- Placeholder for DrawingCanvas (Phase 5) -->
+            <Label text="Drawing Canvas (To be implemented)"/>
+        </VBox>
+    </center>
+    <right>
+        <VBox styleClass="side-panel">
+            <fx:include source="chat-panel.fxml"/>
+            <fx:include source="participants-panel.fxml"/>
+            <fx:include source="tools-panel.fxml"/>
+        </VBox>
+    </right>
+</BorderPane>

@@ -25,10 +25,15 @@ public class ConnectionManager {
     }
 
     public void connect() {
-        client = new WebSocketClient(serverUri, messageHandler);
         try {
-            client.connect();
-            logger.info("Initiating connection to {}", serverUri);
+            client = new WebSocketClientImpl(serverUri, messageHandler);
+            client.connectBlocking(); // Use blocking connect for better control
+            if (client.isOpen()) {
+                logger.info("Successfully connected to {}", serverUri);
+            } else {
+                logger.error("Failed to connect to {}", serverUri);
+                scheduleReconnect();
+            }
         } catch (Exception e) {
             logger.error("Failed to connect: {}", e.getMessage(), e);
             scheduleReconnect();
@@ -38,6 +43,7 @@ public class ConnectionManager {
     private void scheduleReconnect() {
         if (!isReconnecting) {
             isReconnecting = true;
+            logger.info("Scheduling reconnection in 5 seconds...");
             executor.schedule(this::attemptReconnect, 5, TimeUnit.SECONDS);
         }
     }
@@ -45,8 +51,19 @@ public class ConnectionManager {
     private void attemptReconnect() {
         logger.info("Attempting to reconnect...");
         try {
-            client.reconnect();
-            isReconnecting = false;
+            if (client != null) {
+                client.close();
+            }
+            client = new WebSocketClientImpl(serverUri, messageHandler);
+            client.connectBlocking(5, TimeUnit.SECONDS); // 5 second timeout
+            
+            if (client.isOpen()) {
+                logger.info("Reconnection successful");
+                isReconnecting = false;
+            } else {
+                logger.error("Reconnection failed");
+                scheduleReconnect();
+            }
         } catch (Exception e) {
             logger.error("Reconnect failed: {}", e.getMessage(), e);
             scheduleReconnect();
@@ -63,12 +80,23 @@ public class ConnectionManager {
 
     public void disconnect() {
         if (client != null) {
-            client.close();
+            try {
+                client.closeBlocking();
+            } catch (InterruptedException e) {
+                logger.error("Interrupted while closing connection: {}", e.getMessage());
+                Thread.currentThread().interrupt();
+            }
         }
-        executor.shutdown();
+        if (executor != null && !executor.isShutdown()) {
+            executor.shutdown();
+        }
     }
 
     public boolean isConnected() {
         return client != null && client.isOpen();
+    }
+    
+    public boolean isConnecting() {
+        return client != null && client.isConnecting();
     }
 }
