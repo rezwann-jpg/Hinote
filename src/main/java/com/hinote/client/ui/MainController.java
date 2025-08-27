@@ -50,6 +50,7 @@ public class MainController implements Initializable {
     }
 
     public void addChatMessage(ChatMessage message) {
+        System.out.println("💬 addChatMessage called on thread: " + Thread.currentThread().getName());
         Platform.runLater(() -> {
             String time = message.getTimestamp() != null ? message.getTimestamp().toString() : LocalDateTime.now().toString();
             String display = String.format("[%s] %s: %s", time, message.getUsername(), message.getContent());

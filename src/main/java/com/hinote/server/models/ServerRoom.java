@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+import org.java_websocket.WebSocket;
+
 public class ServerRoom {
     private final String roomId;
     private final String roomName;
@@ -73,5 +75,12 @@ public class ServerRoom {
 
     public boolean isEmpty() {
         return users.isEmpty();
+    }
+
+    public void updateUserConnection(String userId, WebSocket conn) {
+        users.stream()
+             .filter(user -> user.getUserId().equals(userId))
+             .findFirst()
+             .ifPresent(user -> user.setConnection(conn));
     }
 }

@@ -77,6 +77,7 @@ public class MessageHandler {
     }
 
     private void handleChatMessage(Message message) {
+        System.out.println("📩 CHAT_MESSAGE received: " + message.getPayload().toPrettyString());
         ChatMessageProtocol chatMsg = JsonUtil.fromJsonNode(message.getPayload(), ChatMessageProtocol.class);
         if (chatMsg != null && mainController != null) {
             mainController.addChatMessage(new ChatMessage(

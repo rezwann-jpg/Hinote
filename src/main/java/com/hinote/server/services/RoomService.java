@@ -4,6 +4,8 @@ import com.hinote.server.models.ConnectedUser;
 import com.hinote.server.models.ServerRoom;
 import com.hinote.shared.protocol.Message;
 import com.hinote.shared.utils.IdGenerator;
+
+import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -87,5 +89,13 @@ public class RoomService {
 
     public boolean roomExists(String roomId) {
         return rooms.containsKey(roomId);
+    }
+
+    public void updateUserConnection(String userId, String roomId, WebSocket conn) {
+        ServerRoom room = rooms.get(roomId);
+        if (room != null) {
+            room.updateUserConnection(userId, conn);
+            logger.info("Updated connection for user {} in room {}", userId, roomId);
+        }
     }
 }

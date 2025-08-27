@@ -34,6 +34,8 @@ public class MessageRouter {
                     String roomId = message.getRoomId();
                     ServerRoom room = roomService.joinRoom(message.getUserId(), message.getUsername(), roomId);
                     if (room != null) {
+                        roomService.updateUserConnection(message.getUserId(), roomId, conn);
+
                         webSocketHandler.sendToClient(conn, new Message(
                             MessageType.ROOM_JOINED,
                             IdGenerator.generateUniqueId(),
@@ -65,6 +67,7 @@ public class MessageRouter {
 
                 case CHAT_MESSAGE:
                     syncService.handleChatMessage(message);
+                    logger.info(" Broadcasting CHAT_MESSAGE to room: {}", message.getRoomId());
                     webSocketHandler.broadcastToRoom(message.getRoomId(), message);
                     break;
 

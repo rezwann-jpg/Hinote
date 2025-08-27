@@ -8,7 +8,7 @@ import java.util.Objects;
 public class ConnectedUser {
     private final String userId;
     private final String username;
-    private final WebSocket connection;
+    private WebSocket connection;
     private final LocalDateTime joinTime;
 
     public ConnectedUser(String userId, String username, WebSocket connection) {
@@ -16,6 +16,10 @@ public class ConnectedUser {
         this.username = username;
         this.connection = connection;
         this.joinTime = LocalDateTime.now();
+    }
+
+    public void setConnection(WebSocket connection) {
+        this.connection = connection;
     }
 
     public String getUserId() {
