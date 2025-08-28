@@ -10,7 +10,6 @@
     </top>
     <center>
         <VBox fx:id="drawingCanvas" styleClass="drawing-canvas">
-            <Label text="Drawing Canvas (To be implemented)" />
         </VBox>
     </center>
     <right>

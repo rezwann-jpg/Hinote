@@ -1,7 +1,7 @@
 package com.hinote.client.models;
 
 public class DrawingOperation {
-    private String operationType; // "LINE", "RECTANGLE", "CIRCLE", etc.
+    private String operationType; // "DRAW_LINE", "ERASE_LINE", etc.
     private double startX;
     private double startY;
     private double endX;
@@ -9,11 +9,15 @@ public class DrawingOperation {
     private String color;
     private double strokeWidth;
     private String userId;
+    private long timestamp;
 
-    public DrawingOperation() {}
+    public DrawingOperation() {
+        this.timestamp = System.currentTimeMillis();
+    }
 
     public DrawingOperation(String operationType, double startX, double startY, 
                           double endX, double endY, String color, double strokeWidth, String userId) {
+        this();
         this.operationType = operationType;
         this.startX = startX;
         this.startY = startY;
@@ -48,6 +52,9 @@ public class DrawingOperation {
 
     public String getUserId() { return userId; }
     public void setUserId(String userId) { this.userId = userId; }
+
+    public long getTimestamp() { return timestamp; }
+    public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 
     @Override
     public String toString() {

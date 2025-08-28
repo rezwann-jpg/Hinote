@@ -1,38 +1,37 @@
-.chat-panel {
-    -fx-padding: 10;
-    -fx-background-color: #f5f5f5;
-    -fx-border-color: #cccccc;
-    -fx-border-width: 1;
+.root {
+    -fx-background-color: #f0f0f0;
 }
 
 .header-label {
     -fx-font-size: 18px;
     -fx-font-weight: bold;
-    -fx-padding: 10;
-    -fx-background-color: #e0e0e0;
-}
-
-.side-panel {
-    -fx-background-color: #ffffff;
-    -fx-padding: 10;
+    -fx-padding: 10px;
+    -fx-background-color: #2c3e50;
+    -fx-text-fill: white;
 }
 
 .drawing-canvas {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #cccccc;
-    -fx-border-width: 1;
+    -fx-background-color: white;
+    -fx-border-color: #ccc;
+    -fx-border-width: 1px;
+    -fx-padding: 10px;
 }
 
-#chatArea {
-    -fx-background-color: #ffffff;
-    -fx-font-family: "Arial";
-    -fx-font-size: 14;
+.side-panel {
+    -fx-background-color: #ecf0f1;
+    -fx-padding: 10px;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 0 0 0 1px;
 }
 
-#chatInput {
-    -fx-background-color: #ffffff;
-    -fx-border-color: #cccccc;
-    -fx-border-width: 1;
-    -fx-font-family: "Arial";
-    -fx-font-size: 14;
+.chat-area {
+    -fx-background-color: white;
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1px;
+    -fx-font-family: "Monaco", "Consolas", "Courier New";
+}
+
+.chat-input {
+    -fx-border-color: #bdc3c7;
+    -fx-border-width: 1px;
 }

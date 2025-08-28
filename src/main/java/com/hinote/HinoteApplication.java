@@ -9,7 +9,7 @@ public class HinoteApplication extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
         FXMLLoader loader = new FXMLLoader(getClass().getResource("/com/hinote/fxml/main.fxml"));
-        Scene scene = new Scene(loader.load(), 800, 600);
+        Scene scene = new Scene(loader.load(), 1000, 600);
         scene.getStylesheets().add(getClass().getResource("/com/hinote/css/light-theme.css").toExternalForm());
         primaryStage.setTitle("Hinote Collaborative Drawing");
         primaryStage.setScene(scene);
