@@ -1,7 +1,7 @@
 package com.hinote.client.models;
 
 public class DrawingOperation {
-    private String operationType; // "DRAW_LINE", "ERASE_LINE", etc.
+    private String operationType; // "DRAW_LINE", "ERASE_LINE", "DRAW_RECTANGLE", "DRAW_CIRCLE", "CLEAR_CANVAS"
     private double startX;
     private double startY;
     private double endX;
@@ -10,9 +10,11 @@ public class DrawingOperation {
     private double strokeWidth;
     private String userId;
     private long timestamp;
+    private String operationId; // For better tracking
 
     public DrawingOperation() {
         this.timestamp = System.currentTimeMillis();
+        this.operationId = "op-" + this.timestamp + "-" + System.nanoTime() % 10000;
     }
 
     public DrawingOperation(String operationType, double startX, double startY, 
@@ -26,6 +28,20 @@ public class DrawingOperation {
         this.color = color;
         this.strokeWidth = strokeWidth;
         this.userId = userId;
+    }
+
+    // Copy constructor for deep copying
+    public DrawingOperation(DrawingOperation other) {
+        this.operationType = other.operationType;
+        this.startX = other.startX;
+        this.startY = other.startY;
+        this.endX = other.endX;
+        this.endY = other.endY;
+        this.color = other.color;
+        this.strokeWidth = other.strokeWidth;
+        this.userId = other.userId;
+        this.timestamp = other.timestamp;
+        this.operationId = other.operationId;
     }
 
     // Getters and setters
@@ -56,6 +72,9 @@ public class DrawingOperation {
     public long getTimestamp() { return timestamp; }
     public void setTimestamp(long timestamp) { this.timestamp = timestamp; }
 
+    public String getOperationId() { return operationId; }
+    public void setOperationId(String operationId) { this.operationId = operationId; }
+
     @Override
     public String toString() {
         return "DrawingOperation{" +
@@ -67,6 +86,20 @@ public class DrawingOperation {
                 ", color='" + color + '\'' +
                 ", strokeWidth=" + strokeWidth +
                 ", userId='" + userId + '\'' +
+                ", operationId='" + operationId + '\'' +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) return true;
+        if (obj == null || getClass() != obj.getClass()) return false;
+        DrawingOperation that = (DrawingOperation) obj;
+        return operationId != null ? operationId.equals(that.operationId) : super.equals(obj);
+    }
+
+    @Override
+    public int hashCode() {
+        return operationId != null ? operationId.hashCode() : super.hashCode();
     }
 }

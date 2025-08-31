@@ -89,6 +89,21 @@ public class MessageRouter {
                     ));
                     break;
 
+                case UNDO_OPERATION:
+                    // Handle undo operation and broadcast to all clients in room
+                    logger.info("📥 UNDO_OPERATION received from user: {} in room: {}", 
+                    message.getUsername(), message.getRoomId());
+                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
+                    logger.info("📤 UNDO_OPERATION broadcast to room: {}", message.getRoomId());
+                    break;
+
+                case REDO_OPERATION:
+                    logger.info("📥 REDO_OPERATION received from user: {} in room: {}", 
+                    message.getUsername(), message.getRoomId());
+                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
+                    logger.info("📤 REDO_OPERATION broadcast to room: {}", message.getRoomId());
+                    break;
+
                 case HEARTBEAT:
                     webSocketHandler.sendToClient(conn, new Message(
                         MessageType.ACK,

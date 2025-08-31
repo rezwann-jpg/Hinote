@@ -18,6 +18,11 @@ public enum MessageType {
     TEXT_OPERATION,
     TEXT_HISTORY,
 
+    UNDO_OPERATION,
+    REDO_OPERATION,
+
+    CLEAR_OPERATION,
+
     HEARTBEAT,
     ERROR,
     ACK

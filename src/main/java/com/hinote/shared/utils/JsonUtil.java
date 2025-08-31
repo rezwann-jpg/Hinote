@@ -1,5 +1,6 @@
 package com.hinote.shared.utils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
@@ -29,6 +30,14 @@ public class JsonUtil {
         } catch (Exception e) {
             logger.error("Error parsing JSON", e);
             return null;
+        }
+    }
+
+    public static <T> T fromJson(String json, TypeReference<T> typeReference) {
+        try {
+            return objectMapper.readValue(json, typeReference);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to parse JSON", e);
         }
     }
     

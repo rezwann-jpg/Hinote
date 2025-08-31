@@ -1,9 +1,9 @@
 package com.hinote.client.network;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.hinote.client.models.ChatMessage;
 import com.hinote.client.models.DrawingOperation;
 import com.hinote.client.models.TextOperation;
-import com.hinote.client.models.TextOperationType;
 import com.hinote.client.ui.MainController;
 import com.hinote.shared.protocol.ChatMessageProtocol;
 import com.hinote.shared.protocol.Message;
@@ -13,6 +13,7 @@ import com.hinote.shared.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class MessageHandler {
@@ -60,6 +61,18 @@ public class MessageHandler {
                     handleRoomLeft(message);
                     break;
 
+                case UNDO_OPERATION:
+                    handleUndoOperation(message);
+                    break;
+
+                case REDO_OPERATION:
+                    handleRedoOperation(message);
+                    break;
+
+                case CLEAR_OPERATION:
+                    handleClearOperation(message);
+                    break;
+
                 case ERROR:
                     handleError(message);
                     break;
@@ -104,7 +117,7 @@ public class MessageHandler {
             
             // Convert enum type (if needed, Jackson should handle this automatically)
             if (textOp.getOperationType() != null) {
-                textOperation.setOperationType(TextOperationType.valueOf(textOp.getOperationType().name()));
+                textOperation.setOperationType(TextOperation.TextOperationType.valueOf(textOp.getOperationType().name()));
             }
             
             textOperation.setTextId(textOp.getTextId());
@@ -162,6 +175,43 @@ public class MessageHandler {
                 logger.warn("Could not parse error message payload");
             }
             mainController.showErrorMessage(errorMessage);
+        }
+    }
+
+    // Updated handler methods for undo/redo with operation lists:
+    private void handleUndoOperation(Message message) {
+        if (mainController != null && !message.getUserId().equals(mainController.getUserId())) {
+            try {
+                List<DrawingOperation> operationsToRemove = JsonUtil.fromJson(
+                    message.getPayload().toString(), 
+                    new TypeReference<List<DrawingOperation>>() {}
+                );
+                mainController.performRemoteUndo(operationsToRemove);
+            } catch (Exception e) {
+                logger.error("Failed to parse undo operations: {}", e.getMessage(), e);
+                mainController.showErrorMessage("Failed to process undo operation");
+            }
+        }
+    }
+
+    private void handleRedoOperation(Message message) {
+        if (mainController != null && !message.getUserId().equals(mainController.getUserId())) {
+            try {
+                List<DrawingOperation> operationsToAdd = JsonUtil.fromJson(
+                    message.getPayload().toString(), 
+                    new TypeReference<List<DrawingOperation>>() {}
+                );
+                mainController.performRemoteRedo(operationsToAdd);
+            } catch (Exception e) {
+                logger.error("Failed to parse redo operations: {}", e.getMessage(), e);
+                mainController.showErrorMessage("Failed to process redo operation");
+            }
+        }
+    }
+
+    private void handleClearOperation(Message message) {
+        if (mainController != null && !message.getUserId().equals(mainController.getUserId())) {
+            mainController.performRemoteClear();
         }
     }
 
