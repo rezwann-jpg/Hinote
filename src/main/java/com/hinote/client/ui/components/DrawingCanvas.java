@@ -126,10 +126,17 @@ public class DrawingCanvas extends Canvas {
             if (isDrawing) {
                 double endX = e.getX();
                 double endY = e.getY();
-                
+
                 // Handle stroke completion for pen and eraser tools
                 if (("PEN".equals(currentTool) || "ERASER".equals(currentTool)) && isStrokeActive) {
                     if (!currentStroke.isEmpty()) {
+                        // Ensure all operations in stroke have IDs
+                        for (DrawingOperation op : currentStroke) {
+                            if (op.getOperationId() == null || op.getOperationId().isEmpty()) {
+                                op.setOperationId("op-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000));
+                            }
+                        }
+
                         List<DrawingOperation> strokeCopy = new ArrayList<>(currentStroke);
                         undoStack.push(strokeCopy);
                         operationHistory.addAll(currentStroke);
@@ -537,14 +544,6 @@ public class DrawingCanvas extends Canvas {
         gc.setLineWidth(strokeWidth);
         gc.strokeLine(startX, startY, endX, endY);
         gc.restore();
-        
-        if (!"PEN".equals(currentTool) && listener != null) {
-            DrawingOperation operation = new DrawingOperation(
-                "DRAW_LINE", startX, startY, endX, endY, 
-                currentColor, strokeWidth, "current-user"
-            );
-            addSingleOperation(operation);
-        }
     }
 
     private void drawPoint(double x, double y) {
@@ -553,14 +552,6 @@ public class DrawingCanvas extends Canvas {
         gc.setLineWidth(strokeWidth);
         gc.strokeLine(x, y, x, y);
         gc.restore();
-        
-        if (!"PEN".equals(currentTool) && listener != null) {
-            DrawingOperation operation = new DrawingOperation(
-                "DRAW_LINE", x, y, x, y, 
-                currentColor, strokeWidth, "current-user"
-            );
-            addSingleOperation(operation);
-        }
     }
 
     private void eraseLine(double startX, double startY, double endX, double endY) {
@@ -569,30 +560,29 @@ public class DrawingCanvas extends Canvas {
         gc.setLineWidth(strokeWidth * 3);
         gc.strokeLine(startX, startY, endX, endY);
         gc.restore();
-        
-        if (listener != null) {
-            DrawingOperation operation = new DrawingOperation(
-                "ERASE_LINE", startX, startY, endX, endY, 
-                "#FFFFFF", strokeWidth * 3, "current-user"
-            );
-            addSingleOperation(operation);
-        }
     }
 
     private void addSingleOperation(DrawingOperation operation) {
+        // Ensure operation has an ID
+        if (operation.getOperationId() == null || operation.getOperationId().isEmpty()) {
+            operation.setOperationId("op-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000));
+        }
+
         operationHistory.add(new DrawingOperation(operation));
         addToBatch(operation);
-        
-        List<DrawingOperation> singleOpGroup = Collections.singletonList(operation);
+
+        List<DrawingOperation> singleOpGroup = new ArrayList<>();
+        singleOpGroup.add(new DrawingOperation(operation));
         undoStack.push(singleOpGroup);
         redoStack.clear();
-        
+
         updateButtonStates();
-        
+
         if (listener != null) {
             listener.onDrawingOperation(operation);
         }
     }
+
 
     private void drawAndSendLine(double startX, double startY, double endX, double endY) {
         gc.save();
@@ -606,6 +596,7 @@ public class DrawingCanvas extends Canvas {
                 "DRAW_LINE", startX, startY, endX, endY, 
                 currentColor, strokeWidth, "current-user"
             );
+            operation.setOperationId("op-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000));
             addSingleOperation(operation);
         }
     }
@@ -627,6 +618,7 @@ public class DrawingCanvas extends Canvas {
                 "DRAW_RECTANGLE", x, y, width, height, 
                 currentColor, strokeWidth, "current-user"
             );
+            operation.setOperationId("op-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000));
             addSingleOperation(operation);
         }
     }
@@ -645,6 +637,7 @@ public class DrawingCanvas extends Canvas {
                 "DRAW_CIRCLE", startX, startY, radius, 0, 
                 currentColor, strokeWidth, "current-user"
             );
+            operation.setOperationId("op-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000));
             operation.setEndX(radius);
             operation.setEndY(0);
             addSingleOperation(operation);
@@ -654,21 +647,38 @@ public class DrawingCanvas extends Canvas {
     public List<DrawingOperation> undo() {
         if (!undoStack.isEmpty()) {
             List<DrawingOperation> operationsToUndo = undoStack.pop();
-            
+
+            // Store in redo stack
             redoStack.push(new ArrayList<>(operationsToUndo));
-            
+
+            // Remove from operation history
             for (DrawingOperation op : operationsToUndo) {
-                operationHistory.removeIf(historyOp -> 
-                    historyOp.getOperationId().equals(op.getOperationId()));
+                operationHistory.removeIf(historyOp -> {
+                    if (historyOp.getOperationId() != null && op.getOperationId() != null) {
+                        return historyOp.getOperationId().equals(op.getOperationId());
+                    }
+                    return false;
+                });
+
+                // Handle text operations
+                if ("TEXT_OPERATION".equals(op.getOperationType())) {
+                    String textId = extractTextIdFromOperation(op);
+                    if (textId != null) {
+                        textOperations.remove(textId);
+                        if (textId.equals(selectedTextId)) {
+                            selectedTextId = null;
+                        }
+                    }
+                }
             }
-            
+
             redrawAllOperations();
             updateButtonStates();
-            
+
             if (listener != null) {
                 listener.onUndo();
             }
-            
+
             return operationsToUndo;
         }
         return Collections.emptyList();
@@ -677,24 +687,54 @@ public class DrawingCanvas extends Canvas {
     public List<DrawingOperation> redo() {
         if (!redoStack.isEmpty()) {
             List<DrawingOperation> operationsToRedo = redoStack.pop();
-            
+
+            // Store in undo stack
             undoStack.push(new ArrayList<>(operationsToRedo));
-            
+
+            // Add back to operation history
             for (DrawingOperation op : operationsToRedo) {
                 operationHistory.add(new DrawingOperation(op));
+
+                // Handle text operations
+                if ("TEXT_OPERATION".equals(op.getOperationType())) {
+                    TextOperation textOp = reconstructTextOperationFromDrawing(op);
+                    if (textOp != null) {
+                        textOperations.put(textOp.getTextId(), textOp);
+                    }
+                }
             }
-            
+
             redrawAllOperations();
             updateButtonStates();
-            
+
             if (listener != null) {
                 listener.onRedo();
             }
-            
+
             return operationsToRedo;
         }
         return Collections.emptyList();
     }
+
+    private String extractTextIdFromOperation(DrawingOperation op) {
+        if (op.getOperationId() != null && op.getOperationId().startsWith("draw-")) {
+            return op.getOperationId().substring(5);
+        }
+        return null;
+    }
+
+    private TextOperation reconstructTextOperationFromDrawing(DrawingOperation op) {
+        // This is a simplified reconstruction - you may need to store more data
+        String textId = extractTextIdFromOperation(op);
+        if (textId != null) {
+            TextOperation textOp = new TextOperation(textId, op.getStartX(), op.getStartY(), "Text");
+            textOp.setColor(op.getColor());
+            textOp.setFontSize(op.getEndX()); // Font size stored in endX
+            return textOp;
+        }
+        return null;
+    }
+
 
     public boolean canUndo() {
         return !undoStack.isEmpty();
@@ -705,20 +745,21 @@ public class DrawingCanvas extends Canvas {
     }
 
     public DrawingOperation clear() {
-        if (!operationHistory.isEmpty()) {
+        // Save current state for undo
+        if (!operationHistory.isEmpty() || !textOperations.isEmpty()) {
             List<DrawingOperation> allOperations = new ArrayList<>(operationHistory);
+
+            // Add text operations to undo stack
+            for (TextOperation textOp : textOperations.values()) {
+                allOperations.add(createDrawingOperationFromText(textOp));
+            }
+
             undoStack.push(allOperations);
         }
-        
-        // Clear text operations
+
+        // Clear everything
         textOperations.clear();
         selectedTextId = null;
-        
-        DrawingOperation clearOperation = new DrawingOperation(
-            "CLEAR_CANVAS", 0, 0, 0, 0, 
-            "#FFFFFF", 0, "current-user"
-        );
-        
         operationHistory.clear();
         currentStroke.clear();
         currentBatch.clear();
@@ -726,11 +767,18 @@ public class DrawingCanvas extends Canvas {
         gc.clearRect(0, 0, getWidth(), getHeight());
 
         updateButtonStates();
-        
+
+        // Create clear operation
+        DrawingOperation clearOperation = new DrawingOperation(
+            "CLEAR_CANVAS", 0, 0, 0, 0, 
+            "#FFFFFF", 0, "current-user"
+        );
+        clearOperation.setOperationId("clear-" + System.currentTimeMillis());
+
         if (listener != null) {
             listener.onDrawingOperation(clearOperation);
         }
-        
+
         return clearOperation;
     }
 

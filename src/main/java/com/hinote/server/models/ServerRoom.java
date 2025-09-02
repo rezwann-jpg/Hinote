@@ -1,6 +1,10 @@
 package com.hinote.server.models;
 
+import com.hinote.shared.protocol.DrawingOperationProtocol;
 import com.hinote.shared.protocol.Message;
+import com.hinote.shared.protocol.TextOperationProtocol;
+import com.hinote.shared.utils.JsonUtil;
+
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -82,5 +86,49 @@ public class ServerRoom {
              .filter(user -> user.getUserId().equals(userId))
              .findFirst()
              .ifPresent(user -> user.setConnection(conn));
+    }
+
+    public int removeOperationsByIds(List<String> operationIds) {
+        int removedCount = 0;
+
+        // Remove from drawing history
+        removedCount += drawingHistory.removeIf(msg -> {
+            try {
+                DrawingOperationProtocol op = JsonUtil.fromJsonNode(
+                    msg.getPayload(), 
+                    DrawingOperationProtocol.class
+                );
+                return op != null && operationIds.contains(op.getOperationId());
+            } catch (Exception e) {
+                return false;
+            }
+        }) ? 1 : 0;
+
+        // Remove from text history
+        removedCount += textHistory.removeIf(msg -> {
+            try {
+                TextOperationProtocol op = JsonUtil.fromJsonNode(
+                    msg.getPayload(), 
+                    TextOperationProtocol.class
+                );
+                return op != null && operationIds.contains(op.getTextId());
+            } catch (Exception e) {
+                return false;
+            }
+        }) ? 1 : 0;
+
+        return removedCount;
+    }
+
+    public void clearDrawingHistory() {
+        drawingHistory.clear();
+    }
+
+    public void clearTextHistory() {
+        textHistory.clear();
+    }
+
+    public boolean isOperationUndone(String operationId) {
+        return false;
     }
 }

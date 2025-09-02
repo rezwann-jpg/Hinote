@@ -5,14 +5,18 @@ import com.hinote.client.models.ChatMessage;
 import com.hinote.client.models.DrawingOperation;
 import com.hinote.client.models.TextOperation;
 import com.hinote.client.ui.MainController;
+import com.hinote.shared.protocol.BatchDrawingOperationProtocol;
 import com.hinote.shared.protocol.ChatMessageProtocol;
+import com.hinote.shared.protocol.DrawingOperationProtocol;
 import com.hinote.shared.protocol.Message;
 import com.hinote.shared.protocol.MessageType;
 import com.hinote.shared.protocol.TextOperationProtocol;
+import com.hinote.shared.protocol.UndoOperationProtocol;
 import com.hinote.shared.utils.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -42,6 +46,10 @@ public class MessageHandler {
 
                 case DRAW_OPERATION:
                     handleDrawingOperation(message);
+                    break;
+
+                case BATCH_DRAW_OPERATION:
+                    handleBatchDrawOperation(message);
                     break;
 
                 case TEXT_OPERATION:
@@ -89,6 +97,32 @@ public class MessageHandler {
         }
     }
 
+    private void handleBatchDrawOperation(Message message) {
+        if (!message.getUserId().equals(mainController.getUserId())) {
+            BatchDrawingOperationProtocol batch = JsonUtil.fromJsonNode(
+                message.getPayload(), 
+                BatchDrawingOperationProtocol.class
+            );
+            
+            List<DrawingOperation> operations = new ArrayList<>();
+            for (DrawingOperationProtocol protocol : batch.getOperations()) {
+                DrawingOperation op = new DrawingOperation();
+                op.setOperationType(protocol.getOperationType());
+                op.setStartX(protocol.getStartX());
+                op.setStartY(protocol.getStartY());
+                op.setEndX(protocol.getEndX());
+                op.setEndY(protocol.getEndY());
+                op.setColor(protocol.getColor());
+                op.setStrokeWidth(protocol.getStrokeWidth());
+                op.setUserId(message.getUserId());
+                op.setOperationId(protocol.getOperationId());
+                operations.add(op);
+            }
+            
+            mainController.applyBatchOperations(operations);
+        }
+    }
+
     private void handleChatMessage(Message message) {
         System.out.println("📩 CHAT_MESSAGE received: " + message.getPayload().toPrettyString());
         ChatMessageProtocol chatMsg = JsonUtil.fromJsonNode(message.getPayload(), ChatMessageProtocol.class);
@@ -103,9 +137,24 @@ public class MessageHandler {
     }
 
     private void handleDrawingOperation(Message message) {
-        DrawingOperation drawOp = JsonUtil.fromJsonNode(message.getPayload(), DrawingOperation.class);
-        if (drawOp != null && mainController != null) {
-            mainController.applyDrawingOperation(drawOp);
+        if (!message.getUserId().equals(mainController.getUserId())) {
+            DrawingOperationProtocol protocol = JsonUtil.fromJsonNode(
+                message.getPayload(), 
+                DrawingOperationProtocol.class
+            );
+
+            DrawingOperation operation = new DrawingOperation();
+            operation.setOperationType(protocol.getOperationType());
+            operation.setStartX(protocol.getStartX());
+            operation.setStartY(protocol.getStartY());
+            operation.setEndX(protocol.getEndX());
+            operation.setEndY(protocol.getEndY());
+            operation.setColor(protocol.getColor());
+            operation.setStrokeWidth(protocol.getStrokeWidth());
+            operation.setUserId(message.getUserId());
+            operation.setOperationId(protocol.getOperationId()); // Add this line
+
+            mainController.applyDrawingOperation(operation);
         }
     }
 
@@ -178,39 +227,34 @@ public class MessageHandler {
         }
     }
 
-    // Updated handler methods for undo/redo with operation lists:
     private void handleUndoOperation(Message message) {
-        if (mainController != null && !message.getUserId().equals(mainController.getUserId())) {
-            try {
-                List<DrawingOperation> operationsToRemove = JsonUtil.fromJson(
-                    message.getPayload().toString(), 
-                    new TypeReference<List<DrawingOperation>>() {}
-                );
-                mainController.performRemoteUndo(operationsToRemove);
-            } catch (Exception e) {
-                logger.error("Failed to parse undo operations: {}", e.getMessage(), e);
-                mainController.showErrorMessage("Failed to process undo operation");
+        if (!message.getUserId().equals(mainController.getUserId())) {
+            UndoOperationProtocol undoProtocol = JsonUtil.fromJsonNode(
+                message.getPayload(), 
+                UndoOperationProtocol.class
+            );
+            
+            // Create dummy operations with just the IDs for removal
+            List<DrawingOperation> operationsToRemove = new ArrayList<>();
+            for (String opId : undoProtocol.getOperationIds()) {
+                DrawingOperation op = new DrawingOperation();
+                op.setOperationId(opId);
+                operationsToRemove.add(op);
             }
+            
+            mainController.performRemoteUndo(operationsToRemove);
         }
     }
 
     private void handleRedoOperation(Message message) {
-        if (mainController != null && !message.getUserId().equals(mainController.getUserId())) {
-            try {
-                List<DrawingOperation> operationsToAdd = JsonUtil.fromJson(
-                    message.getPayload().toString(), 
-                    new TypeReference<List<DrawingOperation>>() {}
-                );
-                mainController.performRemoteRedo(operationsToAdd);
-            } catch (Exception e) {
-                logger.error("Failed to parse redo operations: {}", e.getMessage(), e);
-                mainController.showErrorMessage("Failed to process redo operation");
-            }
+        if (!message.getUserId().equals(mainController.getUserId())) {
+            // Redo is handled as a batch operation
+            handleBatchDrawOperation(message);
         }
     }
 
     private void handleClearOperation(Message message) {
-        if (mainController != null && !message.getUserId().equals(mainController.getUserId())) {
+        if (!message.getUserId().equals(mainController.getUserId())) {
             mainController.performRemoteClear();
         }
     }

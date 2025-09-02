@@ -24,6 +24,9 @@ public class DrawingOperationProtocol {
     @JsonProperty("strokeWidth")
     private double strokeWidth;
 
+    @JsonProperty("operationId")
+    private String operationId; 
+
     // Constructors
     public DrawingOperationProtocol() {}
 
@@ -48,4 +51,7 @@ public class DrawingOperationProtocol {
     
     public double getStrokeWidth() { return strokeWidth; }
     public void setStrokeWidth(double strokeWidth) { this.strokeWidth = strokeWidth; }
+
+    public String getOperationId() { return operationId; }
+    public void setOperationId(String operationId) { this.operationId = operationId; }
 }

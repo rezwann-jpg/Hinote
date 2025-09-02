@@ -67,13 +67,43 @@ public class MessageRouter {
 
                 case CHAT_MESSAGE:
                     syncService.handleChatMessage(message);
-                    logger.info(" Broadcasting CHAT_MESSAGE to room: {}", message.getRoomId());
+                    logger.info("Broadcasting CHAT_MESSAGE to room: {}", message.getRoomId());
                     webSocketHandler.broadcastToRoom(message.getRoomId(), message);
                     break;
 
                 case DRAW_OPERATION:
                 case TEXT_OPERATION:
                     syncService.handleOperation(message);
+                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
+                    break;
+
+                case BATCH_DRAW_OPERATION:
+                    // Handle batch drawing operations
+                    logger.info("BATCH_DRAW_OPERATION received from user: {} in room: {}", 
+                        message.getUsername(), message.getRoomId());
+                    syncService.handleBatchOperation(message);
+                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
+                    break;
+
+                case UNDO_OPERATION:
+                    // Handle undo operation and broadcast to all clients in room
+                    logger.info("UNDO_OPERATION received from user: {} in room: {}", 
+                        message.getUsername(), message.getRoomId());
+                    syncService.handleUndoOperation(message);
+                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
+                    break;
+
+                case REDO_OPERATION:
+                    logger.info("REDO_OPERATION received from user: {} in room: {}", 
+                        message.getUsername(), message.getRoomId());
+                    syncService.handleRedoOperation(message);
+                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
+                    break;
+
+                case CLEAR_OPERATION:
+                    logger.info("CLEAR_OPERATION received from user: {} in room: {}", 
+                        message.getUsername(), message.getRoomId());
+                    syncService.handleClearOperation(message);
                     webSocketHandler.broadcastToRoom(message.getRoomId(), message);
                     break;
 
@@ -87,21 +117,6 @@ public class MessageRouter {
                         message.getUsername(),
                         JsonUtil.toJsonNode(message.getUsername() + " left the room")
                     ));
-                    break;
-
-                case UNDO_OPERATION:
-                    // Handle undo operation and broadcast to all clients in room
-                    logger.info("📥 UNDO_OPERATION received from user: {} in room: {}", 
-                    message.getUsername(), message.getRoomId());
-                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
-                    logger.info("📤 UNDO_OPERATION broadcast to room: {}", message.getRoomId());
-                    break;
-
-                case REDO_OPERATION:
-                    logger.info("📥 REDO_OPERATION received from user: {} in room: {}", 
-                    message.getUsername(), message.getRoomId());
-                    webSocketHandler.broadcastToRoom(message.getRoomId(), message);
-                    logger.info("📤 REDO_OPERATION broadcast to room: {}", message.getRoomId());
                     break;
 
                 case HEARTBEAT:

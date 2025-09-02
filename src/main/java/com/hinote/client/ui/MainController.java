@@ -20,6 +20,7 @@ import javafx.scene.layout.VBox;
 import java.net.URL;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.ResourceBundle;
@@ -298,7 +299,12 @@ public class MainController implements Initializable {
     }
 
     private void sendDrawingOperation(DrawingOperation drawingOp) {
-        DrawingOperationProtocol protocol = new DrawingOperationProtocol();
+    // Ensure operation has an ID
+    if (drawingOp.getOperationId() == null || drawingOp.getOperationId().isEmpty()) {
+        drawingOp.setOperationId("op-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000));
+    }
+    
+    DrawingOperationProtocol protocol = new DrawingOperationProtocol();
         protocol.setOperationType(drawingOp.getOperationType());
         protocol.setStartX(drawingOp.getStartX());
         protocol.setStartY(drawingOp.getStartY());
@@ -306,7 +312,8 @@ public class MainController implements Initializable {
         protocol.setEndY(drawingOp.getEndY());
         protocol.setColor(drawingOp.getColor());
         protocol.setStrokeWidth(drawingOp.getStrokeWidth());
-        
+        protocol.setOperationId(drawingOp.getOperationId()); // Add this line
+
         Message message = new Message(
             MessageType.DRAW_OPERATION,
             IdGenerator.generateUniqueId(),
@@ -315,11 +322,12 @@ public class MainController implements Initializable {
             username,
             JsonUtil.toJsonNode(protocol)
         );
-        
+
         if (connectionManager != null && connectionManager.isConnected()) {
             connectionManager.sendMessage(message);
         }
     }
+
 
     private void sendJoinRoomMessage() {
         Message message = new Message(
@@ -334,21 +342,37 @@ public class MainController implements Initializable {
     }
 
     private void sendBatchOperations(List<DrawingOperation> operations) {
-        // For now, send individual operations
-        // Later you can implement proper batch messaging
+        // Create a batch protocol
+        BatchDrawingOperationProtocol batchProtocol = new BatchDrawingOperationProtocol();
+        List<DrawingOperationProtocol> protocols = new ArrayList<>();
+        
         for (DrawingOperation operation : operations) {
-            sendDrawingOperation(operation);
-        }
-    }
+            // Ensure each operation has an ID
+            if (operation.getOperationId() == null || operation.getOperationId().isEmpty()) {
+                operation.setOperationId("op-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000));
+            }
 
-    private void sendUndoOperations(List<DrawingOperation> operations) {
+            DrawingOperationProtocol protocol = new DrawingOperationProtocol();
+            protocol.setOperationType(operation.getOperationType());
+            protocol.setStartX(operation.getStartX());
+            protocol.setStartY(operation.getStartY());
+            protocol.setEndX(operation.getEndX());
+            protocol.setEndY(operation.getEndY());
+            protocol.setColor(operation.getColor());
+            protocol.setStrokeWidth(operation.getStrokeWidth());
+            protocol.setOperationId(operation.getOperationId());
+            protocols.add(protocol);
+        }
+
+        batchProtocol.setOperations(protocols);
+
         Message message = new Message(
-            MessageType.UNDO_OPERATION,
+            MessageType.BATCH_DRAW_OPERATION,
             IdGenerator.generateUniqueId(),
             roomId,
             userId,
             username,
-            JsonUtil.toJsonNode(operations)
+            JsonUtil.toJsonNode(batchProtocol)
         );
 
         if (connectionManager != null && connectionManager.isConnected()) {
@@ -356,15 +380,26 @@ public class MainController implements Initializable {
         }
     }
 
-    
-    private void sendSimpleUndoOperation() {
+
+    private void sendUndoOperations(List<DrawingOperation> operations) {
+        UndoOperationProtocol undoProtocol = new UndoOperationProtocol();
+        List<String> operationIds = new ArrayList<>();
+        
+        for (DrawingOperation op : operations) {
+            if (op.getOperationId() != null) {
+                operationIds.add(op.getOperationId());
+            }
+        }
+
+        undoProtocol.setOperationIds(operationIds);
+
         Message message = new Message(
             MessageType.UNDO_OPERATION,
             IdGenerator.generateUniqueId(),
             roomId,
             userId,
             username,
-            JsonUtil.toJsonNode("UNDO")
+            JsonUtil.toJsonNode(undoProtocol)
         );
 
         if (connectionManager != null && connectionManager.isConnected()) {
@@ -373,33 +408,8 @@ public class MainController implements Initializable {
     }
 
     private void sendRedoOperations(List<DrawingOperation> operations) {
-        Message message = new Message(
-            MessageType.REDO_OPERATION,
-            IdGenerator.generateUniqueId(),
-            roomId,
-            userId,
-            username,
-            JsonUtil.toJsonNode(operations)
-        );
-
-        if (connectionManager != null && connectionManager.isConnected()) {
-            connectionManager.sendMessage(message);
-        }
-    }
-
-    private void sendSimpleRedoOperation() {
-        Message message = new Message(
-            MessageType.REDO_OPERATION,
-            IdGenerator.generateUniqueId(),
-            roomId,
-            userId,
-            username,
-            JsonUtil.toJsonNode("REDO")
-        );
-
-        if (connectionManager != null && connectionManager.isConnected()) {
-            connectionManager.sendMessage(message);
-        }
+    // Send the operations to redo
+        sendBatchOperations(operations);
     }
 
     private void sendClearOperation(DrawingOperation clearOperation) {
@@ -472,6 +482,14 @@ public class MainController implements Initializable {
         } finally {
             isProcessingRemoteOperation = false;
         }
+    }
+
+    public void applyBatchOperations(List<DrawingOperation> operations) {
+        Platform.runLater(() -> {
+            if (canvasComponent != null) {
+                canvasComponent.applyBatchOperations(operations);
+            }
+        });
     }
 
     // Getters

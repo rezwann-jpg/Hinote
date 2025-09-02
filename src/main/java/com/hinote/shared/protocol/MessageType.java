@@ -15,6 +15,8 @@ public enum MessageType {
     DRAW_OPERATION,
     DRAW_HISTORY,
 
+    BATCH_DRAW_OPERATION,
+
     TEXT_OPERATION,
     TEXT_HISTORY,
 

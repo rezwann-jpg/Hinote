@@ -1,13 +1,13 @@
 package com.hinote.server.services;
 
 import com.hinote.server.models.ServerRoom;
-import com.hinote.shared.protocol.Message;
-import com.hinote.shared.protocol.MessageType;
+import com.hinote.shared.protocol.*;
 import com.hinote.shared.utils.JsonUtil;
 import org.java_websocket.WebSocket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,6 +47,91 @@ public class SynchronizationService {
         }
     }
 
+    public void handleBatchOperation(Message message) {
+        logger.info("Batch operation received from user {}", message.getUsername());
+        
+        ServerRoom room = rooms.get(message.getRoomId());
+        if (room != null) {
+            // Parse the batch and add individual operations to history
+            try {
+                BatchDrawingOperationProtocol batch = JsonUtil.fromJsonNode(
+                    message.getPayload(), 
+                    BatchDrawingOperationProtocol.class
+                );
+                
+                if (batch != null && batch.getOperations() != null) {
+                    for (DrawingOperationProtocol op : batch.getOperations()) {
+                        // Create individual message for each operation in the batch
+                        Message drawMessage = new Message(
+                            MessageType.DRAW_OPERATION,
+                            message.getId() + "-" + op.getOperationId(),
+                            message.getRoomId(),
+                            message.getUserId(),
+                            message.getUsername(),
+                            JsonUtil.toJsonNode(op)
+                        );
+                        room.addDrawingOperation(drawMessage);
+                    }
+                    logger.info("Added {} operations from batch to room history", 
+                               batch.getOperations().size());
+                }
+            } catch (Exception e) {
+                logger.error("Error processing batch operation: {}", e.getMessage(), e);
+            }
+        }
+    }
+
+    public void handleUndoOperation(Message message) {
+        logger.info("Undo operation received from user {} in room {}", 
+                   message.getUsername(), message.getRoomId());
+        
+        ServerRoom room = rooms.get(message.getRoomId());
+        if (room != null) {
+            try {
+                UndoOperationProtocol undoProtocol = JsonUtil.fromJsonNode(
+                    message.getPayload(), 
+                    UndoOperationProtocol.class
+                );
+                
+                if (undoProtocol != null && undoProtocol.getOperationIds() != null) {
+                    // Remove the specified operations from room history
+                    List<String> operationIds = undoProtocol.getOperationIds();
+                    int removedCount = room.removeOperationsByIds(operationIds);
+                    logger.info("Removed {} operations from room history for undo", removedCount);
+                }
+            } catch (Exception e) {
+                logger.error("Error processing undo operation: {}", e.getMessage(), e);
+            }
+        }
+    }
+
+    public void handleRedoOperation(Message message) {
+        logger.info("Redo operation received from user {} in room {}", 
+                   message.getUsername(), message.getRoomId());
+        
+        // Redo is typically handled as a batch operation on the client side
+        // The client sends the operations to redo as a batch
+        // So we can treat it similarly to a batch operation
+        handleBatchOperation(message);
+    }
+
+    public void handleClearOperation(Message message) {
+        logger.info("Clear operation received from user {} in room {}", 
+                   message.getUsername(), message.getRoomId());
+        
+        ServerRoom room = rooms.get(message.getRoomId());
+        if (room != null) {
+            // Clear all drawing and text operations from the room
+            room.clearDrawingHistory();
+            room.clearTextHistory();
+            logger.info("Cleared canvas history for room: {}", message.getRoomId());
+            
+            // Optionally, you might want to add a clear operation to history
+            // so new users know the canvas was cleared
+            room.addDrawingOperation(message);
+        }
+    }
+
     public void sendRoomHistory(String roomId, WebSocket conn) {
         ServerRoom room = rooms.get(roomId);
         if (room == null) {
@@ -65,13 +150,18 @@ public class SynchronizationService {
         // Send drawing history
         List<Message> drawingHistory = room.getDrawingHistory();
         for (Message drawOp : drawingHistory) {
-            sendMessageToClient(conn, drawOp);
+            // Skip sending individual operations that were part of an undone batch
+            if (!room.isOperationUndone(drawOp.getId())) {
+                sendMessageToClient(conn, drawOp);
+            }
         }
 
         // Send text history
         List<Message> textHistory = room.getTextHistory();
         for (Message textOp : textHistory) {
-            sendMessageToClient(conn, textOp);
+            if (!room.isOperationUndone(textOp.getId())) {
+                sendMessageToClient(conn, textOp);
+            }
         }
 
         logger.info("Sent {} chat, {} drawing, and {} text operations as history",

@@ -41,6 +41,7 @@ public class TextOperation {
     public TextOperation(String textId, double x, double y, String content) {
         this();
         this.textId = textId;
+        this.operationId = "textop-" + System.currentTimeMillis() + "-" + (int)(Math.random() * 10000);
         this.operationType = TextOperationType.CREATE_TEXT;
         this.x = x;
         this.y = y;
