@@ -48,8 +48,7 @@ Client: → Send updates as they happen
   "timestamp": 1634567890000  // Client local timestamp
 }
 ```
-### Future improvements
-- Markdown support
+### Project Structure: 
 ```
 hinote/
 ├── pom.xml
@@ -2261,5 +2260,6 @@ The **Server State Synchronizer** (`SynchronizationService`) is the dedicated "l
 By performing these tasks, the `SynchronizationService` guarantees that the shared state within Hinote rooms is consistent, up-to-date, and available to all participants, making real-time collaboration seamless.
 
 ---
+
 
 
