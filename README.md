@@ -1,18 +1,30 @@
-## Hinote
-### UI
-- Drawing space
-- Tools selection
-- Fonts selection
-- Predefined Colors selection (2 types one for Light mode and Dark mode)
-- Vertical column for chatting with users in the room
-- Room participants viewer
-- Finally necessary logic to display all of these features
-### Networking
-- Users can create rooms where other users can join
-- Project will use the server-client architecture
-- Server will synchronize updates of every users in a room
-- Server will update every room concurently that has been created (multithreading)
-- Uses Websockets rather than simple HTTP polling
+## Hinote is a collaborative drawing application built with JavaFX that includes:
+
+### Core Features:
+
+1.  **Real-time collaborative drawing** - Multiple users can draw together
+2.  **Chat functionality** - Users can chat while collaborating
+3.  **Room-based collaboration** - Users join rooms to work together
+4.  **WebSocket communication** - Real-time updates between clients and server
+5.  **Drawing tools** - Various drawing tools and colors
+6.  **Text tools** - Add and edit text on the canvas
+7.  **Theme support** - Light and dark themes
+
+### Architecture:
+
+-   **Client-Server Architecture** using WebSockets
+-   **JavaFX** for the desktop UI
+-   **Maven** for build management
+-   **Jackson** for JSON processing
+-   **WebSocket** for real-time communication
+
+### Key Components:
+
+-   [HinoteApplication.java](vscode-file://vscode-app/c:/Users/LENOVO/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) - Main JavaFX application entry point
+-   [HinoteServer.java](vscode-file://vscode-app/c:/Users/LENOVO/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) - WebSocket server for handling multiple clients
+-   [MainController.java](vscode-file://vscode-app/c:/Users/LENOVO/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) - Main UI controller managing drawing canvas, tools, and chat
+-   [ConnectionManager.java](vscode-file://vscode-app/c:/Users/LENOVO/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-browser/workbench/workbench.html) - Handles WebSocket client connections
+-   Various models for [ChatMessage](vscode-file://vscode-app/c:/Users/LENOVO/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-browser/workbench/workbench.html), [DrawingOperation](vscode-file://vscode-app/c:/Users/LENOVO/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-browser/workbench/workbench.html), [TextOperation](vscode-file://vscode-app/c:/Users/LENOVO/AppData/Local/Programs/Microsoft%20VS%20Code/resources/app/out/vs/code/electron-browser/workbench/workbench.html), etc.
 - How it works:
 
 Client: Establish connection
@@ -2249,4 +2261,5 @@ The **Server State Synchronizer** (`SynchronizationService`) is the dedicated "l
 By performing these tasks, the `SynchronizationService` guarantees that the shared state within Hinote rooms is consistent, up-to-date, and available to all participants, making real-time collaboration seamless.
 
 ---
+
 
