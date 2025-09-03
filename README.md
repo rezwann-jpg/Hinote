@@ -137,26 +137,6 @@ hinote/
 │                           └── MessageTest.java
 
 ```
-```
-// Text operation example
-{
-  "type": "TEXT_OPERATION",
-  "id": "unique-op-id",
-  "operation": {
-    "operationType": "CREATE_TEXT",
-    "textId": "text-123",
-    "x": 100,
-    "y": 200,
-    "content": "Hello World!",
-    "fontSize": 16,
-    "fontFamily": "Arial",
-    "fontWeight": "bold",
-    "color": "#FF0000",
-    "rotation": 0
-  },
-  "timestamp": 1634567890000
-}
-```
 # Tutorial: Hinote
 
 Hinote is a **real-time collaborative drawing application** that allows multiple users to *draw, chat, and add text* on a shared digital whiteboard. It ensures all participants see the same content by sending *standardized communication messages* between clients and a central server, managing the shared state of each collaborative 'room'.
@@ -2260,6 +2240,7 @@ The **Server State Synchronizer** (`SynchronizationService`) is the dedicated "l
 By performing these tasks, the `SynchronizationService` guarantees that the shared state within Hinote rooms is consistent, up-to-date, and available to all participants, making real-time collaboration seamless.
 
 ---
+
 
 
 
