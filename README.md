@@ -197,6 +197,25 @@ flowchart TD
     A5 -- "Stores historical messages" --> A0
     A6 -- "Processes message content" --> A0
 ```
+<h2>⚙️ How to Use</h2> <h3>Prerequisites</h3> <ul> <li>Java <strong>JDK 11+</strong></li> <li>Maven installed</li> <li>Compatible IDE (IntelliJ IDEA, Eclipse, etc.) or terminal access</li> </ul> <h3>Setup & Running</h3> <ol> <li>Clone the repository: <pre><code>git clone https://github.com/rezwann-jpg/Hinote.git
+cd Hinote</code></pre></li>
+
+   <li>Build the project:
+<pre><code>mvn clean install</code></pre></li>
+
+<li>Run the application:
+<pre><code>mvn javafx:run</code></pre></li>
+
+</p> <hr> <h2>🛠️ Contributing</h2> <p>Contributions are welcome!</p> <strong>Steps to contribute:</strong> <ol> <li>Fork the repo</li> <li>Create a new branch: <pre><code>git checkout -b feature-name</code></pre></li>
+
+<li>Commit your changes:
+<pre><code>git commit -m "Add some feature"</code></pre></li>
+
+<li>Push the branch:
+<pre><code>git push origin feature-name</code></pre></li>
+
+<li>Open a pull request</li>
+
 
 ## Chapters
 
@@ -2264,6 +2283,7 @@ The **Server State Synchronizer** (`SynchronizationService`) is the dedicated "l
 By performing these tasks, the `SynchronizationService` guarantees that the shared state within Hinote rooms is consistent, up-to-date, and available to all participants, making real-time collaboration seamless.
 
 ---
+
 
 
 
