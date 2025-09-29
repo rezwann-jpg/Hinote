@@ -19,6 +19,7 @@
   </table>
 </div>
 
+
 ## Hinote is a collaborative drawing application built with JavaFX that includes:
 
 ### Core Features:
@@ -158,8 +159,10 @@ hinote/
 │                           └── MessageTest.java
 
 ```
-# Tutorial: Hinote
 
+<p align="center">
+  <img src="Title.png" alt="Image Description" width="600"/>
+</p>
 Hinote is a **real-time collaborative drawing application** that allows multiple users to *draw, chat, and add text* on a shared digital whiteboard. It ensures all participants see the same content by sending *standardized communication messages* between clients and a central server, managing the shared state of each collaborative 'room'.
 
 
@@ -2261,6 +2264,7 @@ The **Server State Synchronizer** (`SynchronizationService`) is the dedicated "l
 By performing these tasks, the `SynchronizationService` guarantees that the shared state within Hinote rooms is consistent, up-to-date, and available to all participants, making real-time collaboration seamless.
 
 ---
+
 
 
 
