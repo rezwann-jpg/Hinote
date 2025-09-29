@@ -1,7 +1,7 @@
 <h1 align="center">Hinote 「火ノ手」</h1>
 
 <div align="center">
-  <table width="60%">
+  <table width="80%">
     <tr>
       <td style="vertical-align: top; padding-right: 20px;">
         <strong>Authors:</strong><br>
@@ -12,8 +12,7 @@
       <td style="vertical-align: top; padding-left: 20px;">
         <strong>Supervisor:</strong><br>
         Ishmam Tashdeed<br>
-        Lecturer, Dept. of<br>
-        CSE,<br>
+        Lecturer, Dept. of CSE,<br>
         IUT
       </td>
     </tr>
@@ -2262,6 +2261,7 @@ The **Server State Synchronizer** (`SynchronizationService`) is the dedicated "l
 By performing these tasks, the `SynchronizationService` guarantees that the shared state within Hinote rooms is consistent, up-to-date, and available to all participants, making real-time collaboration seamless.
 
 ---
+
 
 
 
