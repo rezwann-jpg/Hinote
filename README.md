@@ -1,4 +1,4 @@
-<h1 align="center">Hinote 「火ノ手」</h1>
+<h1 align="center">Hinote 「火ノ手」- The Ink of Collaboration</h1>
 
 <div align="center">
   <table width="80%">
@@ -2264,6 +2264,7 @@ The **Server State Synchronizer** (`SynchronizationService`) is the dedicated "l
 By performing these tasks, the `SynchronizationService` guarantees that the shared state within Hinote rooms is consistent, up-to-date, and available to all participants, making real-time collaboration seamless.
 
 ---
+
 
 
 
